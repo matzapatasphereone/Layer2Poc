@@ -1,8 +1,13 @@
 import axios from "axios";
 import { LAYER2_BASE_URL } from "../config";
 
-export type SupportedAssets = "USDC" | "USD";
-export const supportedAssets: SupportedAssets[] = ["USDC", "USD"]
+export type SupportedAssets = "USDC" | "USD" | "ETH";
+export const supportedAssets: SupportedAssets[] = ["USDC", "USD", "ETH"]
+export const assetToId = {
+    "USDC": "ETHEREUM_GOERLI_USDC",
+    "USD": "FIAT_TESTNET_USD",
+    "ETH": "ETHEREUM_GOERLI_ETH"
+}
 
 export const createAccountId = (customerId: string, symbol: SupportedAssets) => {
     return `${customerId}_${symbol}`
@@ -10,8 +15,10 @@ export const createAccountId = (customerId: string, symbol: SupportedAssets) => 
 
 // Creates fiat account if not exists. 
 export const createDepositAccount = async (customerId: string, asset: SupportedAssets, accessToken: string) => {
+    const asset_type_id = assetToId[asset];
+    if (!asset_type_id) throw new Error("Invalid asset type id");
     const product_id = asset == "USD" ? "DEPOSIT_FORT_FIAT" : "DEPOSIT_FORT_CRYPTO";
-    const asset_type_id = asset == "USD" ? "FIAT_TESTNET_USD" : "ETHEREUM_GOERLI_USDC";
+
     let data = JSON.stringify({
         "customer_id": customerId,
         "account_to_open": {
@@ -55,10 +62,12 @@ export const getAccountDetails = async (customerId: string, accessToken: string)
     }
 
     const fiatAccount = await getAccount(createAccountId(customerId, "USD"));
-    const cryptoAccount = await getAccount(createAccountId(customerId, "USDC"));
+    const usdcAccount = await getAccount(createAccountId(customerId, "USDC"));
+    const ethAccount = await getAccount(createAccountId(customerId, "ETH"));
 
     return {
         fiatAccount,
-        cryptoAccount
+        usdcAccount,
+        ethAccount
     }
 }

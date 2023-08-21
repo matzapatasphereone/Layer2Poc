@@ -75,7 +75,7 @@ Accounts for user DANIELLEE002
 ### USD (Fiat)
 
 ```
-l2 deposit DANIELLEE002 -a USD
+l2 deposit DANIELLEE002 --asset USD
 Deposit instructions: {
   id: 'c30415d0-0285-442b-9b7c-1dcf423951b2',
   status: 'EXECUTED',
@@ -125,7 +125,7 @@ In sandbox copy memo id and use it in `create manual deposit` in the dashboard
 ### USDC (Crypto)
 
 ```
-l2 deposit DANIELLEE002 -a USDC
+l2 deposit DANIELLEE002 --asset USDC
 Deposit instructions: {
   id: '8ee6f7ef-b419-4f98-9116-665c6cf824d9',
   status: 'REQUESTED',
@@ -143,6 +143,32 @@ In sandbox copy memo id and use it in `create manual deposit` in the dashboard
   instruction_type: 'CRYPTO',
   asset_type_id: 'ETHEREUM_GOERLI_USDC',
   address: '0x0E3B55C3E15C6a436B293c643865BfFf3830db9A',
+  blockchain: 'ethereum',
+  network: 'goerli'
+}
+```
+
+### ETH (crypto)
+
+```
+l2 deposit DANIELLEE002 --asset ETH
+Deposit instructions: {
+  id: '54c117dc-13c2-41c7-92ac-dc203918c4d5',
+  status: 'REQUESTED',
+  created_timestamp: '2023-08-21T12:56:48.136208-04:00',
+  deposit_type: 'PUSH',
+  deposit_destination: {
+    destination_account_id: 'DANIELLEE002_ETH',
+    asset_type_id: 'ETHEREUM_GOERLI_ETH'
+  },
+  customer_name: 'DANIELLEE002',
+  deposit_source: { deposit_instructions: [ [Object] ] }
+}
+In sandbox copy memo id and use it in `create manual deposit` in the dashboard
+ -  {
+  instruction_type: 'CRYPTO',
+  asset_type_id: 'ETHEREUM_GOERLI_ETH',
+  address: '0xAaceE5FAE3EC5afDed7f386af94F0F2a870a7Da9',
   blockchain: 'ethereum',
   network: 'goerli'
 }

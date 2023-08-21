@@ -20,15 +20,14 @@ program
   .command('account')
   .description('get available accounts and balances')
   .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
-  .option('--create-fiat', 'creates fiat account for the user')
-  .option('--create-crypto', 'creates usdc account for the user')
   .action(async (userId, options) => {
     const accessToken = await authenticate();
 
-    if (options.createFiat)
-      await createDepositAccount(userId, "USD", accessToken)
-    if (options.createCrypto)
-      await createDepositAccount(userId, "USDC", accessToken)
+
+    // Create or get accounts
+    await createDepositAccount(userId, "USD", accessToken)
+    await createDepositAccount(userId, "USDC", accessToken)
+    await createDepositAccount(userId, "ETH", accessToken)
 
 
     // In the end we always get the account details
@@ -87,7 +86,7 @@ program
   .command('deposit')
   .description('give deposit instructions for the user')
   .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
-  .requiredOption('-a, --asset <asset symbol>', 'USD | USDC')
+  .requiredOption('-a, --asset <asset symbol>', supportedAssets.join(" | "))
   .action(async (userId, options) => {
     if (!supportedAssets.includes(options.asset)) return console.error("Invalid asset");
     const accessToken = await authenticate();
@@ -109,16 +108,21 @@ program
   .command('exchange')
   .description('exchange usdc for usd and vice versa')
   .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
-  .requiredOption('-a, --amount <amount>', 'source amount')
+  .requiredOption('--amount <amount>', 'source amount')
   .requiredOption('--from <from asset>', supportedAssets.join(" | "))
   .requiredOption('--to <to asset>', supportedAssets.join(" | "))
   .action(async (userId, options) => {
-    if (!supportedAssets.includes(options.from)) return console.error("Invalid from asset");
-    if (!supportedAssets.includes(options.to)) return console.error("Invalid to asset");
-    if (options.from == options.to) return console.error("From and to assets must be different");
+    try {
+      if (!supportedAssets.includes(options.from)) return console.error("Invalid from asset");
+      if (!supportedAssets.includes(options.to)) return console.error("Invalid to asset");
+      if (options.from == options.to) return console.error("From and to assets must be different");
 
-    const accessToken = await authenticate();
-    await exchangeAssets(userId, options.from, options.to, Number(options.amount), accessToken);
+      const accessToken = await authenticate();
+      await exchangeAssets(userId, options.from, options.to, Number(options.amount), accessToken);
+    } catch (e: any) {
+      if (e?.response) console.log(e?.response.data.errors)
+    }
+
   });
 
 program
@@ -164,6 +168,30 @@ program
 
     console.log("Counterparties for user", userId);
     console.log(counterparties);
+  });
+
+program
+  .command('swap')
+  .description('swap crypto assets')
+  .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
+  .requiredOption('--from <from asset>', supportedAssets.join(" | "))
+  .requiredOption('--to <to asset>', supportedAssets.join(" | "))
+  .requiredOption('--amount <amount>', 'source amount')
+  .action(async (userId, options) => {
+    if (!supportedAssets.includes(options.from)) return console.error("Invalid from asset");
+    if (!supportedAssets.includes(options.to)) return console.error("Invalid to asset");
+    if (options.from == options.to) return console.error("From and to assets must be different");
+
+    const accessToken = await authenticate();
+
+    // check for account and create if not exists
+    await createDepositAccount(userId, options.from, accessToken)
+    await createDepositAccount(userId, options.to, accessToken)
+
+    // give instructions
+    console.log("do an l2 exchange from", options.from, "to usd");
+    console.log("await deposit and check balances with 'l2 account'");
+    console.log("do an l2 exchange from usd to", options.to);
   });
 
 program.parse();
