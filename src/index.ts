@@ -19,7 +19,7 @@ program
 program
   .command('account')
   .description('get available accounts and balances')
-  .argument('<string>', 'User id')
+  .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
   .option('--create-fiat', 'creates fiat account for the user')
   .option('--create-crypto', 'creates usdc account for the user')
   .action(async (userId, options) => {
@@ -39,10 +39,10 @@ program
 
 program
   .command('onramp')
-  .description('Buy USDC with USD')
-  .argument('<string>', 'User id')
-  .requiredOption('-a, --amount <amount>', 'Amount of USD to buy USDC with')
-  .option("-wc, --withdrawal-counterpart <id>", "Withdrawal counterpart id")
+  .description('buy USDC with USD')
+  .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
+  .requiredOption('-a, --amount <amount>', 'amount of USD to buy USDC with')
+  .option("-wc, --withdrawal-counterpart <id>", "withdrawal counterpart id")
   .action(async (userId, options) => {
     if (!supportedAssets.includes(options.asset)) return console.error("Invalid asset");
 
@@ -86,7 +86,7 @@ program
 program
   .command('deposit')
   .description('give deposit instructions for the user')
-  .argument('<string>', 'user id')
+  .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
   .requiredOption('-a, --asset <asset symbol>', 'USD | USDC')
   .action(async (userId, options) => {
     if (!supportedAssets.includes(options.asset)) return console.error("Invalid asset");
@@ -108,7 +108,7 @@ program
 program
   .command('exchange')
   .description('exchange usdc for usd and vice versa')
-  .argument('<string>', 'user id')
+  .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
   .requiredOption('-a, --amount <amount>', 'source amount')
   .requiredOption('--from <from asset>', supportedAssets.join(" | "))
   .requiredOption('--to <to asset>', supportedAssets.join(" | "))
@@ -124,12 +124,12 @@ program
 program
   .command('transfer')
   .description('send to crypto address')
-  .argument('<string>', 'user id')
-  .option('--to-address <to address>', "Target crypto address")
-  .option('--to-counterparty <to counterparty>', "Target counterpoarty id")
-  .requiredOption('--amount <amount>', "Amount to withdraw")
+  .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
+  .option('--to-address <to address>', "target crypto address")
+  .option('--to-counterparty <to counterparty>', "target counterpoarty id")
+  .requiredOption('--amount <amount>', "amount to withdraw")
   .requiredOption('--asset <crypto asset>', supportedAssets.join(" | "))
-  .requiredOption('--user-country-code', "Country code of the user")
+  .requiredOption('--user-country-code', "country code of the user")
   .action(async (userId, options) => {
     if (options.asset === "USD") return console.error("This is only for crypto");
     if (!options.toAddress && !options.toCounterparty) return console.error("You must specify either to-address or to-counterparty");
@@ -157,7 +157,7 @@ program
 program
   .command('counterparties')
   .description('list counterparties for user')
-  .argument('<string>', 'user id')
+  .argument('<string>', 'user id (DANIELLEE002 for sandbox)')
   .action(async (userId, options) => {
     const accessToken = await authenticate();
     const counterparties = await getCounterparties(userId, accessToken);

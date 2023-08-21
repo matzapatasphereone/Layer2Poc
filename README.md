@@ -1,9 +1,50 @@
+# Setup
+
+Create `src/config.ts` with:
+
+```ts
+const LAYER2_BASE_URL = 'https://sandbox.layer2financial.com/api/v1';
+const LAYER2_SECRET = 'MG9hNm4xeWNzOWhWM0hn...';
+
+export { LAYER2_BASE_URL, LAYER2_SECRET };
+```
+
+Run on console
+
+```bash
+npm install
+npm run build
+npm link
+```
+
 # Example commands
+
+## Help
+
+```
+l2 --help
+Usage: Layer2 [options] [command]
+
+A simple CLI for Layer2
+
+Options:
+  -V, --version                output the version number
+  -h, --help                   display help for command
+
+Commands:
+  account [options] <string>   get available accounts and balances
+  onramp [options] <string>    Buy USDC with USD
+  deposit [options] <string>   give deposit instructions for the user
+  exchange [options] <string>  exchange usdc for usd and vice versa
+  transfer [options] <string>  send to crypto address
+  counterparties <string>      list counterparties for user
+  help [command]               display help for command
+```
 
 ## Account
 
 ```
-tsx src/index.ts account DANIELLEE002
+l2 account DANIELLEE002
 Accounts for user DANIELLEE002
 {
   fiatAccount: {
@@ -34,7 +75,7 @@ Accounts for user DANIELLEE002
 ### USD (Fiat)
 
 ```
-tsx src/index.ts deposit DANIELLEE002 -a USD
+l2 deposit DANIELLEE002 -a USD
 Deposit instructions: {
   id: 'c30415d0-0285-442b-9b7c-1dcf423951b2',
   status: 'EXECUTED',
@@ -84,7 +125,7 @@ In sandbox copy memo id and use it in `create manual deposit` in the dashboard
 ### USDC (Crypto)
 
 ```
-tsx src/index.ts deposit DANIELLEE002 -a USDC
+l2 deposit DANIELLEE002 -a USDC
 Deposit instructions: {
   id: '8ee6f7ef-b419-4f98-9116-665c6cf824d9',
   status: 'REQUESTED',
@@ -114,7 +155,7 @@ Note here, sometimes takes some time to confirm tx and see balances reflected
 ### Usd to Usdc
 
 ```
-tsx src/index.ts exchange DANIELLEE002 --from USD --to USDC --amount 1
+l2 exchange DANIELLEE002 --from USD --to USDC --amount 1
 Buy quote: {
   id: '34d3a09a-8c10-4a24-8c3b-c55ac2a14859',
   status: 'REQUESTED',
@@ -148,7 +189,7 @@ Accepted quote: {
   }
 }
 
-tsx src/index.ts account DANIELLEE002
+l2 account DANIELLEE002
 Accounts for user DANIELLEE002
 {
   fiatAccount: {
@@ -177,7 +218,7 @@ Accounts for user DANIELLEE002
 ### USDC to USD
 
 ```
-tsx src/index.ts exchange DANIELLEE002 --from USDC --to USD --amount 0.5
+l2 exchange DANIELLEE002 --from USDC --to USD --amount 0.5
 Buy quote: {
   id: '6612f302-8a0f-4b6b-bcd1-fd3ad90de009',
   status: 'REQUESTED',
@@ -215,7 +256,7 @@ Accepted quote: {
 ## Counterparties
 
 ```
-tsx src/index.ts counterparties DANIELLEE002
+l2 counterparties DANIELLEE002
 Counterparties for user DANIELLEE002
 [
   {

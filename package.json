@@ -4,6 +4,7 @@
     "l2": "./dist/index.js"
   },
   "scripts": {
+    "build": "tsc",
     "format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "dependencies": {
