@@ -2,6 +2,7 @@ import axios from "axios";
 import { LAYER2_BASE_URL } from "../config";
 
 export type SupportedAssets = "USDC" | "USD";
+export const supportedAssets: SupportedAssets[] = ["USDC", "USD"]
 
 export const createAccountId = (customerId: string, symbol: SupportedAssets) => {
     return `${customerId}_${symbol}`

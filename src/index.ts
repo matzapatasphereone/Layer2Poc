@@ -1,11 +1,12 @@
 import { Command } from 'commander';
 import { getUsdBalance, getUsdcBalance } from './layer2/balances';
 import { authenticate } from './layer2/authentication';
-import { createDepositAccount, getAccountDetails } from './layer2/accounts';
+import { createDepositAccount, getAccountDetails, supportedAssets } from './layer2/accounts';
 import { getDepositInstructions } from './layer2/deposits';
 import yesno from 'yesno';
-import { buyUsdc } from './layer2/exchange';
-import { acceptWithdrawal, createWithdrawal } from './layer2/withdrawal';
+import { exchangeAssets } from './layer2/exchange';
+import { acceptWithdrawal, createCryptoWithdrawal } from './layer2/withdrawal';
+import { createCryptoCounterparty } from './layer2/counterparties';
 const program = new Command();
 
 program
@@ -15,14 +16,13 @@ program
 
 program
   .command('account')
-  .description('Get balances for the user accounts')
+  .description('get available accounts and balances')
   .argument('<string>', 'User id')
   .option('--create-fiat', 'creates fiat account for the user')
   .option('--create-crypto', 'creates usdc account for the user')
   .action(async (userId, options) => {
     const accessToken = await authenticate();
 
-    console.log(options)
     if (options.createFiat)
       await createDepositAccount(userId, "USD", accessToken)
     if (options.createCrypto)
@@ -36,36 +36,25 @@ program
   });
 
 program
-  .command('balances')
-  .description('Get balances for the user accounts')
-  .argument('<string>', 'User id')
-  .action(async (userId) => {
-    const accessToken = await authenticate();
-    const usdcBalance = await getUsdcBalance(userId, accessToken);
-    const usdBalance = await getUsdBalance(userId, accessToken);
-
-    console.log("Balances for user", userId);
-    console.log("USDC:", usdcBalance);
-    console.log("USD:", usdBalance);
-  });
-
-
-program
   .command('onramp')
   .description('Buy USDC with USD')
   .argument('<string>', 'User id')
   .requiredOption('-a, --amount <amount>', 'Amount of USD to buy USDC with')
   .option("-wc, --withdrawal-counterpart <id>", "Withdrawal counterpart id")
   .action(async (userId, options) => {
+    if (!supportedAssets.includes(options.asset)) return console.error("Invalid asset");
+
+    // Authenticate
     const accessToken = await authenticate();
 
-    // check for account
+    // check for account and create if not exists
+    await createDepositAccount(userId, "USD", accessToken)
 
     // get deposit instructions
     const instructions = await getDepositInstructions(userId, "USD", accessToken);
-    console.log("Deposit instructions:", instructions.data);
+    console.log("Deposit instructions:", instructions);
     console.log("In sandbox copy memo id and use it in `create manual deposit` in the dashboard")
-    for (const instruction of instructions.data.deposit_source.deposit_instructions) {
+    for (const instruction of instructions.deposit_source.deposit_instructions) {
       console.log(" - ", instruction)
     }
     const ok = await yesno({ question: "Have you deposited?" });
@@ -73,7 +62,7 @@ program
 
     // buy crypto
     const prevUsdcBalance = (await getUsdcBalance(userId, accessToken)).available_balance;
-    await buyUsdc(userId, Number(options.amount), accessToken);
+    await exchangeAssets(userId, "USD", "USDC", Number(options.amount), accessToken);
 
     // Wait for the transaction to complete
     for (let i = 0; i < 10; i++) {
@@ -83,9 +72,10 @@ program
     }
 
     // Withdraw crypto
-    const withdrawalId = await createWithdrawal(userId, Number(options.amount), options.withdrawalCounterpart, accessToken);
+    if (!options.withdrawalCounterpart) return console.log("No withdrawal counterpart specified");
+    const withdrawalId = await createCryptoWithdrawal(userId, Number(options.amount), options.withdrawalCounterpart, accessToken);
     console.log("Withdrawal id:", withdrawalId);
-    // Print counterpart data
+
     const okWithdraw = await yesno({ question: "Are you sure you want to withdraw?" });
     if (!okWithdraw) return console.log("Aborting...");
     await acceptWithdrawal(withdrawalId, accessToken);
@@ -95,40 +85,67 @@ program
   .command('deposit')
   .description('give deposit instructions for the user')
   .argument('<string>', 'user id')
-  .option('--fiat', 'creates fiat account for the user if it does not exist and gives deposit instructions')
-  .option('--crypto', 'creates usdc account for the user if it does not exist and gives deposit instructions')
+  .requiredOption('-a, --asset <asset symbol>', 'USD | USDC')
   .action(async (userId, options) => {
+    if (!supportedAssets.includes(options.asset)) return console.error("Invalid asset");
     const accessToken = await authenticate();
 
+    // creates fiat account if it doesn't exist
+    await createDepositAccount(userId, options.asset, accessToken)
 
-    if (options.fiat) {
-      // creates fiat account if it doesn't exist
-      await createDepositAccount(userId, "USD", accessToken)
-
-      // get deposit instructions
-      const instructions = await getDepositInstructions(userId, "USD", accessToken);
-      const prevUsdBalance = (await getUsdBalance(userId, accessToken)).available_balance;
-      console.log("Deposit instructions:", instructions.data);
-      console.log("In sandbox copy memo id and use it in `create manual deposit` in the dashboard")
-      for (const instruction of instructions.data.deposit_source.deposit_instructions) {
-        console.log(" - ", instruction)
-      }
-      const ok = await yesno({ question: "Have you deposited?" });
-      if (!ok) return console.log("Aborting...");
-
-      // Wait for the transaction to complete
-      for (let i = 0; i < 10; i++) {
-        const usdBalance = (await getUsdBalance(userId, accessToken)).available_balance;
-        if ((prevUsdBalance + options.amount) <= usdBalance)
-          return console.log("Deposit successful");
-
-        if (i == 9) return console.log("Deposit failed");
-        else await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-    } else if (options.crypto) {
-
+    // get deposit instructions
+    const instructions = await getDepositInstructions(userId, options.asset, accessToken);
+    console.log("Deposit instructions:", instructions);
+    console.log("In sandbox copy memo id and use it in `create manual deposit` in the dashboard")
+    for (const instruction of instructions.deposit_source.deposit_instructions) {
+      console.log(" - ", instruction)
     }
 
   });
+
+program
+  .command('exchange')
+  .description('exchange usdc for usd and vice versa')
+  .argument('<string>', 'user id')
+  .requiredOption('-a, --amount <amount>', 'source amount')
+  .requiredOption('--from <from asset>', supportedAssets.join(" | "))
+  .requiredOption('--to <to asset>', supportedAssets.join(" | "))
+  .action(async (userId, options) => {
+    if (!supportedAssets.includes(options.from)) return console.error("Invalid from asset");
+    if (!supportedAssets.includes(options.to)) return console.error("Invalid to asset");
+    if (options.from == options.to) return console.error("From and to assets must be different");
+
+    const accessToken = await authenticate();
+    await exchangeAssets(userId, options.from, options.to, Number(options.amount), accessToken);
+  });
+
+program
+  .command('transfer')
+  .description('send to crypto address')
+  .argument('<string>', 'user id')
+  .option('--to-address <to address>', "Target crypto address")
+  .option('--to-counterparty <to counterparty>', "Target counterpoarty id")
+  .requiredOption('--amount <amount>', "Amount to withdraw")
+  .requiredOption('--asset <crypto asset>', supportedAssets.join(" | "))
+  .requiredOption('--user-country-code', "Country code of the user")
+  .action(async (userId, options) => {
+    if (options.asset === "USD") return console.error("This is only for crypto");
+    if (!options.toAddress && !options.toCounterparty) return console.error("You must specify either to-address or to-counterparty");
+    if (options.toAddress && options.toCounterparty) return console.error("You must specify either to-address or to-counterparty, not both");
+
+    const accessToken = await authenticate();
+    let withdrawalId;
+    if (options.toCounterparty) {
+      withdrawalId = await createCryptoWithdrawal(userId, Number(options.amount), options.withdrawalCounterpart, accessToken);
+      console.log("Withdrawal id:", withdrawalId);
+    } else {
+
+    }
+
+    const okWithdraw = await yesno({ question: "Are you sure you want to withdraw?" });
+    if (!okWithdraw) return console.log("Aborting...");
+    await acceptWithdrawal(withdrawalId, accessToken);
+  });
+
 
 program.parse();

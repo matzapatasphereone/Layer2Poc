@@ -3,7 +3,7 @@ import { createAccountId } from "./accounts";
 import { LAYER2_BASE_URL } from "../config";
 
 // Returns withdrawal id
-export const createWithdrawal = async (userId: string, amount: number, destinationCounterpartyId: string, accessToken: string) => {
+export const createCryptoWithdrawal = async (userId: string, amount: number, destinationCounterpartyId: string, accessToken: string) => {
     let data = JSON.stringify({
         "withdrawal_rail": "CRYPTO",
         "description": "Withdraw crypto",

@@ -21,7 +21,7 @@ export const getDepositInstructions = async (userId: string, symbol: SupportedAs
         data: data
     };
 
-    return (await axios.request(config)).data
+    return (await axios.request(config)).data.data
 }
 
 
