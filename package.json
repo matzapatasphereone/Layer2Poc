@@ -1,7 +1,7 @@
 {
   "name": "l2-cli",
   "bin": {
-    "l2": "./src/index.ts"
+    "l2": "./dist/index.js"
   },
   "scripts": {
     "format": "prettier --config .prettierrc 'src/**/*.ts' --write"

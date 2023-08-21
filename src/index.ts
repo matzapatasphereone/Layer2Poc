@@ -140,7 +140,7 @@ program
     if (!counterpartyId) {
       // See if we can find address in counterparty already
       const counterparties = await getCounterparties(userId, accessToken);
-      counterpartyId = (counterparties.find(c => c.wallet_information.blockchain_address.toLowerCase() == options.toAddress.toLowerCase()))?.id;
+      counterpartyId = (counterparties.find((c: any) => c.wallet_information.blockchain_address.toLowerCase() == options.toAddress.toLowerCase()))?.id;
 
       if (!counterpartyId)
         counterpartyId = await createCryptoCounterparty(userId, options.userCountryCode, options.toAddress, accessToken);
