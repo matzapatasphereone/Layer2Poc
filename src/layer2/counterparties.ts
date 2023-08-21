@@ -23,7 +23,7 @@ export const createCryptoCounterparty = async (userId: string, countryCode: stri
     });
 
 
-    return axios.request({
+    return (await axios.request({
         method: 'post',
         maxBodyLength: Infinity,
         url: `${LAYER2_BASE_URL}/counterparties`,
@@ -32,5 +32,14 @@ export const createCryptoCounterparty = async (userId: string, countryCode: stri
             'Content-Type': 'application/json'
         },
         data: data
-    })
+    })).data.id
+}
+
+export const getCounterparties = async (userId: string, accessToken: string) => {
+    return (await axios.request({
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${LAYER2_BASE_URL}/counterparties?custome_id=${userId}`,
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+    })).data.data.counterparties
 }

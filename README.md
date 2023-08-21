@@ -211,3 +211,103 @@ Accepted quote: {
   }
 }
 ```
+
+## Counterparties
+
+```
+tsx src/index.ts counterparties DANIELLEE002
+Counterparties for user DANIELLEE002
+[
+  {
+    id: '6fa77880-9234-4c27-8523-43bf28e27320',
+    customer_id: 'DANIELLEE002',
+    counterparty_type: 'CRYPTO',
+    is_international: false,
+    supported_rails: [ 'CRYPTO' ],
+    description: 'sample counterparty',
+    profile: {
+      name: 'DANIELLEE002',
+      address: [Object],
+      relationship_to_customer: 'SELF'
+    },
+    wallet_information: {
+      blockchain_address: '0xAF055a6CDC2c87C6293d4aA7FD0488916F2e7d2b',
+      wallet_type: 'OTHER',
+      institution_name: 'SUPERCUSTODY',
+      institution_address: [Object]
+    }
+  },
+  {
+    id: '77e70c00-7b2f-4868-b2af-5a3fc53ffbf6',
+    customer_id: 'DANIELLEE002',
+    counterparty_type: 'CRYPTO',
+    is_international: false,
+    supported_rails: [ 'CRYPTO' ],
+    description: 'sample counterparty',
+    profile: { name: 'kk', address: [Object], relationship_to_customer: 'SELF' },
+    wallet_information: {
+      blockchain_address: '0xAF055a6CDC2c87C6293d4aA7FD0488916F2e7d2b',
+      wallet_type: 'OTHER',
+      institution_name: 'SUPERCUSTODY',
+      institution_address: [Object]
+    }
+  },
+  {
+    id: 'be89ed65-963d-42bf-9585-e7a136e3bd40',
+    customer_id: 'DANIELLEE002',
+    counterparty_type: 'CRYPTO',
+    is_international: false,
+    supported_rails: [ 'CRYPTO' ],
+    description: 'sample counterparty',
+    profile: {
+      name: 'tarun',
+      address: [Object],
+      relationship_to_customer: 'SELF'
+    },
+    wallet_information: {
+      blockchain_address: '0xAF055a6CDC2c87C6293d4aA7FD0488916F2e7d2b',
+      wallet_type: 'OTHER',
+      institution_name: 'SUPERCUSTODY',
+      institution_address: [Object]
+    }
+  },
+  {
+    id: 'c89f0065-511b-4b03-8a99-29412b3b5f44',
+    customer_id: 'DANIELLEE002',
+    counterparty_type: 'CRYPTO',
+    is_international: false,
+    supported_rails: [ 'CRYPTO' ],
+    description: 'sample counterparty',
+    profile: {
+      name: 'DANIELLEE002',
+      address: [Object],
+      relationship_to_customer: 'SELF'
+    },
+    wallet_information: {
+      blockchain_address: '0xAF055a6CDC2c87C6293d4aA7FD0488916F2e7d2b',
+      wallet_type: 'OTHER',
+      institution_name: 'SUPERCUSTODY',
+      institution_address: [Object]
+    }
+  },
+  {
+    id: 'dbeffb5c-b43a-4d89-88de-a311f17d3d5b',
+    customer_id: 'DANIELLEE002',
+    counterparty_type: 'CRYPTO',
+    is_international: false,
+    supported_rails: [ 'CRYPTO' ],
+    description: 'sample counterparty',
+    profile: {
+      name: 'DANIELLEE002',
+      address: [Object],
+      relationship_to_customer: 'SELF'
+    },
+    wallet_information: {
+      blockchain_address: '0xAF055a6CDC2c87C6293d4aA7FD0488916F2e7d2b',
+      wallet_type: 'OTHER',
+      institution_name: 'SUPERCUSTODY',
+      institution_address: [Object]
+    }
+  }
+]
+```

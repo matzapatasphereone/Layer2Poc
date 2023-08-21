@@ -1,12 +1,14 @@
+#!/usr/bin/env ts-node-script
 import { Command } from 'commander';
-import { getUsdBalance, getUsdcBalance } from './layer2/balances';
+import { getUsdcBalance } from './layer2/balances';
 import { authenticate } from './layer2/authentication';
 import { createDepositAccount, getAccountDetails, supportedAssets } from './layer2/accounts';
 import { getDepositInstructions } from './layer2/deposits';
-import yesno from 'yesno';
 import { exchangeAssets } from './layer2/exchange';
 import { acceptWithdrawal, createCryptoWithdrawal } from './layer2/withdrawal';
-import { createCryptoCounterparty } from './layer2/counterparties';
+import { createCryptoCounterparty, getCounterparties } from './layer2/counterparties';
+import yesno from 'yesno';
+
 const program = new Command();
 
 program
@@ -134,18 +136,34 @@ program
     if (options.toAddress && options.toCounterparty) return console.error("You must specify either to-address or to-counterparty, not both");
 
     const accessToken = await authenticate();
-    let withdrawalId;
-    if (options.toCounterparty) {
-      withdrawalId = await createCryptoWithdrawal(userId, Number(options.amount), options.withdrawalCounterpart, accessToken);
-      console.log("Withdrawal id:", withdrawalId);
-    } else {
+    let counterpartyId = options.toCounterparty;
+    if (!counterpartyId) {
+      // See if we can find address in counterparty already
+      const counterparties = await getCounterparties(userId, accessToken);
+      counterpartyId = (counterparties.find(c => c.wallet_information.blockchain_address.toLowerCase() == options.toAddress.toLowerCase()))?.id;
 
+      if (!counterpartyId)
+        counterpartyId = await createCryptoCounterparty(userId, options.userCountryCode, options.toAddress, accessToken);
     }
+
+    const withdrawalId = await createCryptoWithdrawal(userId, Number(options.amount), counterpartyId, accessToken);
+    console.log("Withdrawal id:", withdrawalId);
 
     const okWithdraw = await yesno({ question: "Are you sure you want to withdraw?" });
     if (!okWithdraw) return console.log("Aborting...");
     await acceptWithdrawal(withdrawalId, accessToken);
   });
 
+program
+  .command('counterparties')
+  .description('list counterparties for user')
+  .argument('<string>', 'user id')
+  .action(async (userId, options) => {
+    const accessToken = await authenticate();
+    const counterparties = await getCounterparties(userId, accessToken);
+
+    console.log("Counterparties for user", userId);
+    console.log(counterparties);
+  });
 
 program.parse();
